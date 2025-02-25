@@ -24,3 +24,7 @@ For example a cabinet of W600xD580xH800mm will have the following board componen
 | 570    | 584   | 1  |      N/A      |                | BACKING     |
 
 In this web application the user can inout the finished cabinets dimensions and the board component list will be generated. 
+
+
+## Languages & Technologies 
+Java Spring
