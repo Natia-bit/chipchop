@@ -5,6 +5,7 @@ import cc.chipchop.entity.User;
 import cc.chipchop.service.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -35,5 +36,33 @@ public class UserServiceTest {
     @AfterEach
     public void tearDown(){
         Mockito.reset(userDao);
+    }
+
+    @Test
+    public void givenFindAll_whenDaoReturnsMultipleRecords_ThenReturnMultipleRecords(){
+
+    }
+
+    @Test
+    public void givenFindByID_whenDaoReturnsUserId_thenReturnUserId(){
+
+    }
+
+    @Test
+    public void givenFindInvalidId_whenDaoReturnsInvalidId_thenReturnNotFound(){
+
+    }
+
+    @Test
+    public void givenInsert_whenDaoInsertsNewUser_thenReturnNewUser(){
+
+    }
+
+    @Test
+    public void givenInsertWithExistingEmail_whenDaoInsertsExistingEmail_thenReturnSameUser(){}
+
+    @Test
+    public void givenUpdate_whenUpdatingUser_thenReturnUpdatedUser(){
+
     }
 }
