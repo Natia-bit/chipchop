@@ -6,11 +6,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class UserService {
 
     private final UserDao userDao;
@@ -19,6 +21,7 @@ public class UserService {
     public UserService(UserDao userDao) {
         this.userDao = userDao;
     }
+
 
     public List<User> findAll() {
         return userDao.findAll();

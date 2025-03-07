@@ -2,6 +2,7 @@ package cc.chipchop.mapper;
 
 import cc.chipchop.entity.User;
 
+import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.jdbc.core.RowMapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
