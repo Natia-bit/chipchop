@@ -3,6 +3,7 @@ package cc.chipchop.services;
 import cc.chipchop.dao.UserDao;
 import cc.chipchop.entity.User;
 import cc.chipchop.service.UserService;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,13 +12,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.awaitility.Awaitility.given;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,13 +34,14 @@ public class UserServiceTest {
     private UserService userService;
 
     @BeforeEach
-    public void serUp()
-    {
+    public void serUp() {
         when(userDao.findById(1)).thenReturn(Optional.empty());
-        when(userDao.findById(2)).thenReturn(Optional.of(new User(2, "bob@test.com", "secretpass")));
-        when(userDao.findById(3)).thenReturn(Optional.of(new User(3, "alice@test.com", "supersecretpass")));
-        when(userDao.findById(4)).thenReturn(Optional.of(new User(4, "alex@test.com", "topsecretpass")));
+        when(userDao.findById(2)).thenReturn(Optional.of(new User(2, "zeus@test.com", "thunderandlightning")));
+        when(userDao.findById(3)).thenReturn(Optional.of(new User(3, "hera@test.com", "whereareyouzeus")));
+        when(userDao.findById(4)).thenReturn(Optional.of(new User(4, "athena@test.com", "knowlageispower")));
+        when(userDao.findByEmail("hadis@test.com")).thenReturn(Optional.of(new User(5, "hadis@test.com", "cerberus")));
     }
+
     @AfterEach
     public void tearDown(){
         Mockito.reset(userDao);
@@ -45,9 +50,9 @@ public class UserServiceTest {
     @Test
     public void givenFindAll_whenDaoReturnsMultipleRecords_ThenReturnMultipleRecords(){
         List<User> expected = new ArrayList<>();
-        expected.add(new User(1, "tim@test.com", "123456"));
-        expected.add(new User(2, "rob@test.com", "102030"));
-        expected.add(new User(3, "maria@test.com", "654321"));
+        expected.add(new User(1, "apollo@test.com", "sunisthebest"));
+        expected.add(new User(2, "artemis@test.com", "afkgoneforhunting"));
+        expected.add(new User(3, "hephaestus@test.com", "aphrodite"));
 
         when(userDao.findAll()).thenReturn(expected);
 
@@ -59,25 +64,53 @@ public class UserServiceTest {
 
     @Test
     public void givenFindByID_whenDaoReturnsUserId_thenReturnUserId(){
+        var result = userService.findById(2);
+        assertTrue(result.isPresent());
 
+        verify(userDao, times(1)).findById(2);
     }
 
     @Test
     public void givenFindInvalidId_whenDaoReturnsInvalidId_thenReturnNotFound(){
+        assertThrows(ResponseStatusException.class, () -> userService.findById(1));
+        verify(userDao, times(1)).findById(1);
+    }
 
+    @Test
+    public void givenFindByEmail_whenDaoReturnsFindByEmail_thenReturnUser(){
+        var result = userService.findByEmail("hadis@test.com");
+        assertTrue(result.isPresent());
+
+        verify(userDao, times(1)).findByEmail("hadis@test.com");
+    }
+
+    @Test
+    public void givenFindByInvalidEmail_whenDaoReturnsFindByEmail_thenReturnNotFound(){
+        when(userDao.findByEmail("hermes@test.com")).thenReturn(Optional.empty());
+
+        assertThrows(ResponseStatusException.class, () -> userService.findByEmail("hermes@test.com"));
+        verify(userDao, times(1)).findByEmail("hermes@test.com");
     }
 
     @Test
     public void givenInsert_whenDaoInsertsNewUser_thenReturnNewUser(){
+        User user = new User(10, "poseidon@test.com", "sevenseas");
+        when(userDao.findByEmail("poseidon@test.com")).thenReturn(Optional.empty());
 
+        userService.insert(user);
+        verify(userDao, times(1)).insert(user);
     }
 
     @Test
-    public void givenInsertWithExistingEmail_whenDaoInsertsExistingEmail_thenReturnSameUser(){}
+    public void givenInsert_whenDaoInsertsInvalidUser_thenReturnDuplicateKeyException(){
+        User user = new User(1, "hadis@test.com", "underworld");
+
+        assertThrows(DuplicateKeyException.class, () -> userService.insert(user));
+        verify(userDao, times(1)).findByEmail("hadis@test.com");
+    }
 
     @Test
     public void givenUpdate_whenUpdatingUser_thenReturnUpdatedUser(){
-
     }
 
     @Test
