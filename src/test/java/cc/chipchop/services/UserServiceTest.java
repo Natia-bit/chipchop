@@ -119,6 +119,7 @@ public class UserServiceTest {
 
     @Test
     public void givenDelete_whenDeletingExistingUser_thenReturnTrue(){
-
+        assertTrue(userService.delete(3));
+        verify(userDao, times(1)).delete(3);
     }
 }
