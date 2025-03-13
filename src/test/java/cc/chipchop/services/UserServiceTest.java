@@ -111,6 +111,10 @@ public class UserServiceTest {
 
     @Test
     public void givenUpdate_whenUpdatingUser_thenReturnUpdatedUser(){
+        var updatedUser = new User(3, "hera@test.com", "updatedpassword");
+
+        userService.update(3, updatedUser);
+        verify(userDao, times(1)).update(3, updatedUser);
     }
 
     @Test
