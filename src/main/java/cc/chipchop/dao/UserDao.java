@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Repository
@@ -35,6 +36,15 @@ public class UserDao {
         }
     }
 
+    public Optional<User> findByEmail(String email) {
+        var query = "SELECT id, email, password FROM users WHERE email=?";
+        try {
+            return Optional.of(Objects.requireNonNull(this.jdbcTemplate.queryForObject(query, this.rowMapper, email)));
+        } catch (EmptyResultDataAccessException e){
+            return  Optional.empty();
+        }
+
+    }
     public void insert(User user){
         var query = "INSERT INTO users(email, password) VALUES(?,?)";
         this.jdbcTemplate.update(query, user.email(), user.password());

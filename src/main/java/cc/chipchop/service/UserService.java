@@ -4,6 +4,7 @@ import cc.chipchop.dao.UserDao;
 import cc.chipchop.entity.User;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -36,9 +37,25 @@ public class UserService {
         return temp;
     }
 
+    public Optional<User> findByEmail(String email){
+        var temp = userDao.findByEmail(email);
+        if (temp.isEmpty()){
+            logger.info("email not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        return temp;
+    }
+
     public void insert(User user){
-        userDao.insert(user);
-        logger.info("New user added");
+        var temp =  userDao.findByEmail(user.email());
+
+        if (temp.isEmpty()) {
+            userDao.insert(user);
+            logger.info("New user added.");
+        } else {
+            throw new DuplicateKeyException("Email already exists. New user could not be created with existing email");
+        }
     }
 
     public boolean update(long id, User user) {

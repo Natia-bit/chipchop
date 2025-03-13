@@ -26,6 +26,7 @@ public class ChipchopRestController {
         return userService.findById(id);
     }
 
+
     @PostMapping("/users")
     public void createUser(@RequestBody User user) {
         userService.insert(user);
