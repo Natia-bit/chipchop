@@ -22,12 +22,12 @@ public class UserDao {
     }
 
 
-    public List<User> findAll(){
+    public List<User> findAll() {
         var query = "SELECT id, email, password FROM users";
         return this.jdbcTemplate.query(query, this.rowMapper);
     }
 
-    public Optional<User> findById(long id){
+    public Optional<User> findById(long id) {
         var query = "SELECT id, email, password FROM users WHERE id=?";
         try {
             return Optional.ofNullable(this.jdbcTemplate.queryForObject(query, this.rowMapper, id));
@@ -40,22 +40,22 @@ public class UserDao {
         var query = "SELECT id, email, password FROM users WHERE email=?";
         try {
             return Optional.of(Objects.requireNonNull(this.jdbcTemplate.queryForObject(query, this.rowMapper, email)));
-        } catch (EmptyResultDataAccessException e){
-            return  Optional.empty();
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
         }
-
     }
-    public void insert(User user){
+
+    public void insert(User user) {
         var query = "INSERT INTO users(email, password) VALUES(?,?)";
         this.jdbcTemplate.update(query, user.email(), user.password());
     }
 
-    public void update(long id, User user){
+    public void update(long id, User user) {
         var query = "UPDATE users SET email=?, password=? WHERE id=?";
         this.jdbcTemplate.update(query, user.email(), user.password(), id);
     }
 
-    public void delete(long id){
+    public void delete(long id) {
         var query = "DELETE FROM users WHERE id=?";
         this.jdbcTemplate.update(query, id);
     }

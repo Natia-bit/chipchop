@@ -31,7 +31,7 @@ Java Spring
 
 ## Run Postgres on docker
 Docker 
-```declarative
+```bash
 docker pull postgres
 docker run --name postgres-db -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_USER=postgres -d -p 5432:5432 postgres
 ```

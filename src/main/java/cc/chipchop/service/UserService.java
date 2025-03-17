@@ -6,7 +6,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -28,33 +27,30 @@ public class UserService {
         return userDao.findAll();
     }
 
-    public Optional<User> findById(long id){
+    public Optional<User> findById(long id) {
         var temp = userDao.findById(id);
         if (temp.isEmpty()) {
-            logger.info("ID not found");
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         return temp;
     }
 
-    public Optional<User> findByEmail(String email){
+    public Optional<User> findByEmail(String email) {
         var temp = userDao.findByEmail(email);
-        if (temp.isEmpty()){
-            logger.info("email not found");
+        if (temp.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
         return temp;
     }
 
-    public void insert(User user){
-        var temp =  userDao.findByEmail(user.email());
+    public void insert(User user) {
+        var temp = userDao.findByEmail(user.email());
 
         if (temp.isEmpty()) {
             userDao.insert(user);
-            logger.info("New user added.");
         } else {
-            throw new DuplicateKeyException("Email already exists. New user could not be created with existing email");
+            throw new ResponseStatusException(HttpStatus.CONFLICT);
         }
     }
 
@@ -63,7 +59,6 @@ public class UserService {
         var temp = findById(id);
         if (temp.isPresent()) {
             userDao.update(id, user);
-            logger.info("User updated");
             isUpdated = true;
         }
         return isUpdated;
@@ -74,8 +69,7 @@ public class UserService {
         var temp = findById(id);
         if (temp.isPresent()) {
             userDao.delete(id);
-            logger.info("User deleted");
-            isDeleted= true;
+            isDeleted = true;
         }
         return isDeleted;
 

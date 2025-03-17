@@ -49,13 +49,13 @@ public class UserServiceTest {
 
     @Test
     public void givenFindAll_whenDaoReturnsMultipleRecords_ThenReturnMultipleRecords(){
-        List<User> expected = new ArrayList<>();
-        expected.add(new User(1, "apollo@test.com", "sunisthebest"));
-        expected.add(new User(2, "artemis@test.com", "afkgoneforhunting"));
-        expected.add(new User(3, "hephaestus@test.com", "aphrodite"));
+        List<User> expected = List.of(
+            new User(1, "apollo@test.com", "sunisthebest"),
+            new User(2, "artemis@test.com", "afkgoneforhunting"),
+            new User(3, "hephaestus@test.com", "aphrodite")
+        );
 
         when(userDao.findAll()).thenReturn(expected);
-
         var actual = userService.findAll();
 
         assertEquals(expected, actual);
@@ -102,10 +102,10 @@ public class UserServiceTest {
     }
 
     @Test
-    public void givenInsert_whenDaoInsertsInvalidUser_thenReturnDuplicateKeyException(){
+    public void givenInsert_whenDaoInsertsInvalidUser_thenReturnResponseStatusException(){
         User user = new User(1, "hadis@test.com", "underworld");
 
-        assertThrows(DuplicateKeyException.class, () -> userService.insert(user));
+        assertThrows(ResponseStatusException.class, () -> userService.insert(user));
         verify(userDao, times(1)).findByEmail("hadis@test.com");
     }
 

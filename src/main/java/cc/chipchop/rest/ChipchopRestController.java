@@ -33,7 +33,7 @@ public class ChipchopRestController {
     }
 
     @PutMapping("/users/{id}")
-    public void updateUser(@PathVariable long id, @RequestBody User user){
+    public void updateUser(@PathVariable long id, @RequestBody User user) {
         userService.update(id, user);
     }
 
