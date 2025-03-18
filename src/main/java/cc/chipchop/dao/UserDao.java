@@ -45,18 +45,18 @@ public class UserDao {
         }
     }
 
-    public void insert(User user) {
-        var query = "INSERT INTO users(email, password) VALUES(?,?)";
-        this.jdbcTemplate.update(query, user.email(), user.password());
+    public Object insert(User user) {
+        var query = "INSERT INTO users(email, password) VALUES(?,?) RETURNING id";
+        return this.jdbcTemplate.queryForObject( query, Long.class, user.email(), user.password());
     }
 
-    public void update(long id, User user) {
+    public int update(long id, User user) {
         var query = "UPDATE users SET email=?, password=? WHERE id=?";
-        this.jdbcTemplate.update(query, user.email(), user.password(), id);
+        return this.jdbcTemplate.update(query, user.email(), user.password(), id);
     }
 
-    public void delete(long id) {
+    public int delete(long id) {
         var query = "DELETE FROM users WHERE id=?";
-        this.jdbcTemplate.update(query, id);
+        return this.jdbcTemplate.update(query, id);
     }
 }

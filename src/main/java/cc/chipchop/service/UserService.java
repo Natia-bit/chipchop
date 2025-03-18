@@ -52,6 +52,7 @@ public class UserService {
         } else {
             throw new ResponseStatusException(HttpStatus.CONFLICT);
         }
+
     }
 
     public boolean update(long id, User user) {
@@ -72,7 +73,6 @@ public class UserService {
             isDeleted = true;
         }
         return isDeleted;
-
     }
 
 }
