@@ -123,6 +123,7 @@ public class UserServiceTest {
 
         assertThrows(ResponseStatusException.class, () -> userService.update(1, updatedUser));
         verify(userDao, times(1)).findById(1);
+        verify(userDao, times(0)).update(0, updatedUser);
     }
 
     @Test
