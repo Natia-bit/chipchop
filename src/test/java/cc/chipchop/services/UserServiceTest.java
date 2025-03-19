@@ -118,6 +118,14 @@ public class UserServiceTest {
     }
 
     @Test
+    public void givenUpdate_whenUpdatingInvalidUser_thenReturnNotFound(){
+        var updatedUser = new User(1, "none@test.com", "fail");
+
+        assertThrows(ResponseStatusException.class, () -> userService.update(1, updatedUser));
+        verify(userDao, times(1)).findById(1);
+    }
+
+    @Test
     public void givenDelete_whenDeletingExistingUser_thenReturnTrue(){
         assertTrue(userService.delete(3));
         verify(userDao, times(1)).delete(3);

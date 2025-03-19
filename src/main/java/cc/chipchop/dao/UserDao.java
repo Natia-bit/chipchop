@@ -7,6 +7,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -17,8 +18,8 @@ public class UserDao {
     private final UserRowMapper rowMapper = new UserRowMapper();
 
     @Autowired
-    public UserDao(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public UserDao(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
 
@@ -45,7 +46,7 @@ public class UserDao {
         }
     }
 
-    public Object insert(User user) {
+    public Long insert(User user) {
         var query = "INSERT INTO users(email, password) VALUES(?,?) RETURNING id";
         return this.jdbcTemplate.queryForObject( query, Long.class, user.email(), user.password());
     }
