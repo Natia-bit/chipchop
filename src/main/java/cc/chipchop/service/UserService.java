@@ -2,9 +2,6 @@ package cc.chipchop.service;
 
 import cc.chipchop.dao.UserDao;
 import cc.chipchop.entity.User;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,7 +13,6 @@ import java.util.Optional;
 public class UserService {
 
     private final UserDao userDao;
-    private final Log logger = LogFactory.getLog(this.getClass());
 
     public UserService(UserDao userDao) {
         this.userDao = userDao;
@@ -27,21 +23,15 @@ public class UserService {
         return userDao.findAll();
     }
 
+
     public Optional<User> findById(long id) {
-        var temp = userDao.findById(id);
-        if (temp.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-        return temp;
+        return Optional.ofNullable(userDao.findById(id).
+            orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
     }
 
-    public Optional<User> findByEmail(String email) {
-        var temp = userDao.findByEmail(email);
-        if (temp.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-
-        return temp;
+    public User findByEmail(String email) {
+        return userDao.findByEmail(email).
+            orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     public void insert(User user) {
@@ -52,7 +42,6 @@ public class UserService {
         } else {
             throw new ResponseStatusException(HttpStatus.CONFLICT);
         }
-
     }
 
     public boolean update(long id, User user) {
@@ -74,5 +63,4 @@ public class UserService {
         }
         return isDeleted;
     }
-
 }

@@ -79,7 +79,8 @@ public class UserServiceTest {
     @Test
     public void givenFindByEmail_whenDaoReturnsFindByEmail_thenReturnUser(){
         var result = userService.findByEmail("hadis@test.com");
-        assertTrue(result.isPresent());
+        assertEquals(User.class, result.getClass());
+        assertEquals(5, result.id());
 
         verify(userDao, times(1)).findByEmail("hadis@test.com");
     }
