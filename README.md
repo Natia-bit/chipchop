@@ -28,3 +28,11 @@ In this web application the user can inout the finished cabinets dimensions and 
 
 ## Languages & Technologies 
 Java Spring
+
+## Run Postgres on docker
+Docker 
+```bash
+docker pull postgres
+docker run --name postgres-db -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_USER=postgres -d -p 5432:5432 postgres
+```
+This is based on the latest docker image `postgres:17.4`
