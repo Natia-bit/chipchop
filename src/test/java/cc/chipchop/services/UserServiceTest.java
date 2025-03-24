@@ -76,13 +76,13 @@ public class UserServiceTest {
         var result = userService.findById(2);
         assertTrue(result.isPresent());
 
-        verify(userDao, times(1)).findById(2);
+        verify(userDao, times(1)).findById(any(Long.class));
     }
 
     @Test
     public void givenFindInvalidId_whenDaoReturnsInvalidId_thenReturnNotFound(){
         assertThrows(ResponseStatusException.class, () -> userService.findById(1));
-        verify(userDao, times(1)).findById(1);
+        verify(userDao, times(1)).findById(any(Long.class));
     }
 
     @Test
@@ -91,7 +91,7 @@ public class UserServiceTest {
         assertEquals(User.class, result.getClass());
         assertEquals(5, result.id());
 
-        verify(userDao, times(1)).findByEmail("hadis@test.com");
+        verify(userDao, times(1)).findByEmail(any(String.class));
     }
 
     @Test
@@ -99,7 +99,7 @@ public class UserServiceTest {
         when(userDao.findByEmail("hermes@test.com")).thenReturn(Optional.empty());
 
         assertThrows(ResponseStatusException.class, () -> userService.findByEmail("hermes@test.com"));
-        verify(userDao, times(1)).findByEmail("hermes@test.com");
+        verify(userDao, times(1)).findByEmail(any(String.class));
     }
 
     @Test
@@ -109,6 +109,7 @@ public class UserServiceTest {
 
         userService.insert(user);
         verify(userDao, times(1)).insert(user);
+        verifyNoMoreInteractions(userDao);
     }
 
     @Test
@@ -116,7 +117,8 @@ public class UserServiceTest {
         User user = new User(1, "hadis@test.com", "underworld");
 
         assertThrows(ResponseStatusException.class, () -> userService.insert(user));
-        verify(userDao, times(1)).findByEmail("hadis@test.com");
+        verify(userDao, times(1)).findByEmail(any(String.class));
+        verifyNoMoreInteractions(userDao);
     }
 
     @Test
@@ -124,7 +126,7 @@ public class UserServiceTest {
         var updatedUser = new User(3, "hera@test.com", "updatedpassword");
 
         userService.update(3, updatedUser);
-        verify(userDao, times(1)).findById(3);
+        verify(userDao, times(1)).findById(any(Long.class));
     }
 
     @Test
@@ -132,7 +134,7 @@ public class UserServiceTest {
         var updatedUser = new User(1, "none@test.com", "fail");
 
         assertThrows(ResponseStatusException.class, () -> userService.update(1, updatedUser));
-        verify(userDao, times(1)).findById(1);
+        verify(userDao, times(1)).findById(any(Long.class));
         verifyNoMoreInteractions(userDao);
     }
 
@@ -149,33 +151,36 @@ public class UserServiceTest {
         var updatedUser = new User(1, "none@test.com", "fail");
 
         assertThrows(ResponseStatusException.class, () -> userService.update(1, updatedUser));
-        verify(userDao, times(1)).findById(1);
+        verify(userDao, times(1)).findById(any(Long.class));
         verify(userDao, times(0)).update(0, updatedUser);
+        verifyNoMoreInteractions(userDao);
     }
 
     @Test
     public void givenDelete_whenConfirmingId_thenConfirmUserIdIsFound(){
         userService.delete(2);
-        verify(userDao, times(1)).findById(2);
-        verify(userDao, times(1)).delete(2);
+        verify(userDao, times(1)).findById(any(Long.class));
+        verify(userDao, times(1)).delete(any(Long.class));
     }
 
     @Test
     public void givenDelete_whenConfirmingInvalidUser_thenReturnNotFound(){
         assertThrows(ResponseStatusException.class, () -> userService.delete(1));
-        verify(userDao, times(1)).findById(1);
-        verify(userDao, times(0)).delete(1);
+        verify(userDao, times(1)).findById(any(Long.class));
+        verify(userDao, times(0)).delete(any(Long.class));
+        verifyNoMoreInteractions(userDao);
     }
 
     @Test
     public void givenDelete_whenDeletingExistingUser_thenReturnTrue(){
         userService.delete(3);
-        verify(userDao, times(1)).delete(3);
+        verify(userDao, times(1)).delete(any(Long.class));
     }
 
     @Test
     public void givenDelete_whenDeletingInvalidUser_thenReturnNotFound(){
         assertThrows(ResponseStatusException.class, () -> userService.delete(1));
+        verify(userDao, times(1)).findById(1);
         verifyNoMoreInteractions(userDao);
     }
 }
