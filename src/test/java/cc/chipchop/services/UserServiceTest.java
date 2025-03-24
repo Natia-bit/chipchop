@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import static org.awaitility.Awaitility.given;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,7 +35,7 @@ public class UserServiceTest {
     private UserService userService;
 
     @BeforeEach
-    public void serUp() {
+    public void setUp() {
         when(userDao.findById(1)).thenReturn(Optional.empty());
         when(userDao.findById(2)).thenReturn(Optional.of(new User(2, "zeus@test.com", "thunderandlightning")));
         when(userDao.findById(3)).thenReturn(Optional.of(new User(3, "hera@test.com", "whereareyouzeus")));
@@ -63,7 +64,15 @@ public class UserServiceTest {
     }
 
     @Test
-    public void givenFindByID_whenDaoReturnsUserId_thenReturnUserId(){
+    public void givenFindAll_whenDaoDoesNotHaveRecords_ThenReturnEmpty(){
+        var actual = userService.findAll();
+        assertTrue(actual.isEmpty());
+
+        verify(userDao, times(1)).findAll();
+    }
+
+    @Test
+    public void givenFindById_whenDaoReturnsUserId_thenReturnUserId(){
         var result = userService.findById(2);
         assertTrue(result.isPresent());
 
@@ -111,6 +120,23 @@ public class UserServiceTest {
     }
 
     @Test
+    public void givenUpdate_whenConfirmingId_thenConfirmUserIdIsFound(){
+        var updatedUser = new User(3, "hera@test.com", "updatedpassword");
+
+        userService.update(3, updatedUser);
+        verify(userDao, times(1)).findById(3);
+    }
+
+    @Test
+    public void givenUpdate_whenConfirmingId_thenReturnIdNotFound(){
+        var updatedUser = new User(1, "none@test.com", "fail");
+
+        assertThrows(ResponseStatusException.class, () -> userService.update(1, updatedUser));
+        verify(userDao, times(1)).findById(1);
+        verifyNoMoreInteractions(userDao);
+    }
+
+    @Test
     public void givenUpdate_whenUpdatingUser_thenReturnUpdatedUser(){
         var updatedUser = new User(3, "hera@test.com", "updatedpassword");
 
@@ -128,8 +154,28 @@ public class UserServiceTest {
     }
 
     @Test
+    public void givenDelete_whenConfirmingId_thenConfirmUserIdIsFound(){
+        userService.delete(2);
+        verify(userDao, times(1)).findById(2);
+        verify(userDao, times(1)).delete(2);
+    }
+
+    @Test
+    public void givenDelete_whenConfirmingInvalidUser_thenReturnNotFound(){
+        assertThrows(ResponseStatusException.class, () -> userService.delete(1));
+        verify(userDao, times(1)).findById(1);
+        verify(userDao, times(0)).delete(1);
+    }
+
+    @Test
     public void givenDelete_whenDeletingExistingUser_thenReturnTrue(){
-        assertTrue(userService.delete(3));
+        userService.delete(3);
         verify(userDao, times(1)).delete(3);
+    }
+
+    @Test
+    public void givenDelete_whenDeletingInvalidUser_thenReturnNotFound(){
+        assertThrows(ResponseStatusException.class, () -> userService.delete(1));
+        verifyNoMoreInteractions(userDao);
     }
 }

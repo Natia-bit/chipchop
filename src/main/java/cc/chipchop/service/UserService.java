@@ -18,11 +18,9 @@ public class UserService {
         this.userDao = userDao;
     }
 
-
     public List<User> findAll() {
         return userDao.findAll();
     }
-
 
     public Optional<User> findById(long id) {
         return Optional.ofNullable(userDao.findById(id).
@@ -35,32 +33,30 @@ public class UserService {
     }
 
     public void insert(User user) {
-        var temp = userDao.findByEmail(user.email());
-
-        if (temp.isEmpty()) {
-            userDao.insert(user);
-        } else {
-            throw new ResponseStatusException(HttpStatus.CONFLICT);
-        }
+        userDao.findByEmail(user.email()).
+            ifPresentOrElse(
+                u -> {throw new ResponseStatusException(HttpStatus.CONFLICT);},
+                () -> userDao.insert(user));
     }
 
-    public boolean update(long id, User user) {
-        boolean isUpdated = false;
-        var temp = findById(id);
-        if (temp.isPresent()) {
-            userDao.update(id, user);
-            isUpdated = true;
-        }
-        return isUpdated;
+//  inteliJ is suggesting to change method to return void?
+//    public boolean update(long id, User user) {
+//        return findById(id)
+//            .map(u -> userDao.update(id, user) > 0)
+//            .orElse(false);
+//    }
+
+    public void update(long id, User user) {
+        findById(id).ifPresent(u -> userDao.update(id, user));
     }
 
-    public boolean delete(long id) {
-        boolean isDeleted = false;
-        var temp = findById(id);
-        if (temp.isPresent()) {
-            userDao.delete(id);
-            isDeleted = true;
-        }
-        return isDeleted;
+//    public boolean delete(long id) {
+//        return findById(id)
+//            .map(u -> userDao.delete(id) > 0)
+//            .orElse(false);
+//    }
+
+    public void delete(long id) {
+        findById(id).ifPresent(u -> userDao.delete(id));
     }
 }
