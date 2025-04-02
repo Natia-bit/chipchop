@@ -126,7 +126,9 @@ public class UserServiceTest {
         var updatedUser = new User(3, "hera@test.com", "updatedpassword");
 
         userService.update(3, updatedUser);
-        verify(userDao, times(1)).findById(any(Long.class));
+
+        verify(userDao, times(1)).update(3, updatedUser);
+        verifyNoMoreInteractions(userDao);
     }
 
     @Test
