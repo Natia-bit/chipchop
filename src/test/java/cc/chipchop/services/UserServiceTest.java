@@ -135,8 +135,8 @@ public class UserServiceTest {
     public void givenUpdate_whenConfirmingId_thenReturnIdNotFound(){
         var updatedUser = new User(1, "none@test.com", "fail");
 
-        assertThrows(ResponseStatusException.class, () -> userService.update(1, updatedUser));
-        verify(userDao, times(1)).findById(any(Long.class));
+        assertFalse(userService.update(1, updatedUser));
+        verify(userDao, times(1)).update(1, updatedUser);
         verifyNoMoreInteractions(userDao);
     }
 
@@ -152,9 +152,9 @@ public class UserServiceTest {
     public void givenUpdate_whenUpdatingInvalidUser_thenReturnNotFound(){
         var updatedUser = new User(1, "none@test.com", "fail");
 
-        assertThrows(ResponseStatusException.class, () -> userService.update(1, updatedUser));
-        verify(userDao, times(1)).findById(any(Long.class));
-        verify(userDao, times(0)).update(0, updatedUser);
+        assertFalse(userService.update(1, updatedUser));
+
+        verify(userDao, times(1)).update(1, updatedUser);
         verifyNoMoreInteractions(userDao);
     }
 
