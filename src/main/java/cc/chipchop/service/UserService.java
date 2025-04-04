@@ -4,6 +4,7 @@ import cc.chipchop.dao.UserDao;
 import cc.chipchop.entity.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -18,49 +19,38 @@ public class UserService {
         this.userDao = userDao;
     }
 
-
+    @Transactional(readOnly = true)
     public List<User> findAll() {
         return userDao.findAll();
     }
 
-
+    @Transactional(readOnly = true)
     public Optional<User> findById(long id) {
         return Optional.ofNullable(userDao.findById(id).
             orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
     }
 
+    @Transactional(readOnly = true)
     public User findByEmail(String email) {
         return userDao.findByEmail(email).
             orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
+    @Transactional
     public void insert(User user) {
-        var temp = userDao.findByEmail(user.email());
-
-        if (temp.isEmpty()) {
-            userDao.insert(user);
-        } else {
-            throw new ResponseStatusException(HttpStatus.CONFLICT);
-        }
+        userDao.findByEmail(user.email()).
+            ifPresentOrElse(
+                u -> {throw new ResponseStatusException(HttpStatus.CONFLICT);},
+                () -> userDao.insert(user));
     }
 
+    @Transactional
     public boolean update(long id, User user) {
-        boolean isUpdated = false;
-        var temp = findById(id);
-        if (temp.isPresent()) {
-            userDao.update(id, user);
-            isUpdated = true;
-        }
-        return isUpdated;
+        return userDao.update(id, user) > 0;
     }
 
-    public boolean delete(long id) {
-        boolean isDeleted = false;
-        var temp = findById(id);
-        if (temp.isPresent()) {
-            userDao.delete(id);
-            isDeleted = true;
-        }
-        return isDeleted;
+    @Transactional
+    public void delete(long id) {
+        findById(id).ifPresent(u -> userDao.delete(id));
     }
 }
