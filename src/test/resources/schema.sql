@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS users (
 insert INTO users (email, password)
 values
     ('one@example.com', 'secretpass'),
-    ('two.example.com', 'verysecretpass'),
+    ('two@example.com', 'verysecretpass'),
     ('three@example.com', 'supersecretpass');
