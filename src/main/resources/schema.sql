@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL
 );
 
-insert INTO "user"(email, password)
+insert INTO users (email, password)
 values
     ('one@example.com', 'secretpass'),
-    ('two.example.com', 'verysecretpass')
-    ('three@example.com', 'supersecretpass')
+    ('two.example.com', 'verysecretpass'),
+    ('three@example.com', 'supersecretpass');
