@@ -146,7 +146,7 @@ public class UserDaoTest {
         assertFalse(userDao.findById(10).isPresent());
     }
     @Test
-    public void testRawMapper(){
+    public void testRowMapper(){
         var user = userDao.findById(1);
         var expected = new User(1, "one@example.com", "secretpass");
 
