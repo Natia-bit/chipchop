@@ -15,6 +15,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import static com.jayway.jsonpath.internal.path.PathCompiler.fail;
 import static org.junit.jupiter.api.Assertions.*;
@@ -143,6 +144,13 @@ public class UserDaoTest {
 
         assertEquals(0, userDao.delete(10));
         assertFalse(userDao.findById(10).isPresent());
+    }
+    @Test
+    public void testRawMapper(){
+        var user = userDao.findById(1);
+        var expected = new User(1, "one@example.com", "secretpass");
+
+        assertEquals(Optional.of(expected), user);
     }
 }
 
