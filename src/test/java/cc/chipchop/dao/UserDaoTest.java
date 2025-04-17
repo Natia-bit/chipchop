@@ -51,9 +51,21 @@ public class UserDaoTest {
 
     @BeforeEach
     void setUp(){
-        jdbcTemplate.update("INSERT INTO users(email, password) VALUES(?,?)", "one@example.com", "secretpass");
-        jdbcTemplate.update("INSERT INTO users(email, password) VALUES(?,?)", "two@example.com", "verysecretpass");
-        jdbcTemplate.update("INSERT INTO users(email, password) VALUES(?,?)", "three@example.com", "supersecretpass");
+        jdbcTemplate.update(
+          "INSERT INTO users(email, password) VALUES(?,?)",
+          "one@example.com",
+          "secretpass"
+        );
+        jdbcTemplate.update(
+          "INSERT INTO users(email, password) VALUES(?,?)",
+          "two@example.com",
+          "verysecretpass"
+        );
+        jdbcTemplate.update(
+          "INSERT INTO users(email, password) VALUES(?,?)",
+
+          "three@example.com", "supersecretpass"
+        );
     }
 
     @AfterEach
