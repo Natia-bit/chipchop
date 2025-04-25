@@ -11,17 +11,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ChipchopRestController.class)
@@ -33,6 +35,8 @@ public class UserRestControllerTest {
     @MockitoBean
     private UserService userService;
 
+    private final ObjectMapper objectMapper = new ObjectMapper()
+        .findAndRegisterModules();
 
     @Test
     public void givenGetAllUsers_whenGetAllUsers_thenSucceedWith200() throws Exception {
@@ -42,6 +46,7 @@ public class UserRestControllerTest {
             new User(3, "tree@test.com", "pass")));
 
         mockMvc.perform(get("/api/users"))
+            .andDo(print())
             .andExpectAll(
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON),
@@ -95,6 +100,7 @@ public class UserRestControllerTest {
                 jsonPath("$.email").value("bla@testing.com"),
                 jsonPath("$.password").value("supersecret")
             )
+            .andDo(print())
             .andReturn();
 
         verify(userService, times(1)).findById(1);
@@ -123,5 +129,31 @@ public class UserRestControllerTest {
         verify(userService, times(1)).findById(3);
     }
 
+
+    @Test
+    public void givenCreateUser_whenCreatingUser_thenSucceedWith200() throws Exception {
+        User dude = new User(1, "dude@test.com", "java");
+
+        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+
+
+        System.out.println(objectMapper.writeValueAsString(dude));
+
+
+        mockMvc.perform(post("/api/users")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"id\": 1, \"email\":\"dude@test.com\", \"password\":\"java\"}"))
+            .andDo(print())
+            .andExpect(status().isOk());
+//
+//        mockMvc.perform(post("/api/users")
+//            .contentType(MediaType.APPLICATION_JSON)
+//            .content(objectMapper.writeValueAsString(dude)))
+//            .andExpect(status().isOk());
+
+        verify(userService, times(1)).insert(argThat(user ->
+                user.email().equals("dude@test.com") && user.password().equals("java")));
+        verifyNoMoreInteractions(userService);
+    }
 
 }
