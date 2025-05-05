@@ -3,6 +3,7 @@ package cc.chipchop.controller;
 import cc.chipchop.entity.User;
 import cc.chipchop.rest.ChipchopRestController;
 import cc.chipchop.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,15 +12,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.server.ResponseStatusException;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.SerializationFeature;
+
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -37,6 +38,7 @@ public class UserRestControllerTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper()
         .findAndRegisterModules();
+
 
     @Test
     public void givenGetAllUsers_whenGetAllUsers_thenSucceedWith200() throws Exception {
@@ -109,7 +111,7 @@ public class UserRestControllerTest {
 
     @Test
     public void givenFindUserById_whenFindingInvalidUser_thenReturnNotFound404() throws Exception {
-        when(userService.findById(2)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));;
+        when(userService.findById(2)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         mockMvc.perform(get("/api/users/{id}", 2))
                 .andExpect(status().isNotFound());
@@ -134,25 +136,46 @@ public class UserRestControllerTest {
     public void givenCreateUser_whenCreatingUser_thenSucceedWith200() throws Exception {
         User dude = new User(1, "dude@test.com", "java");
 
-        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-
-
-        System.out.println(objectMapper.writeValueAsString(dude));
-
-
         mockMvc.perform(post("/api/users")
             .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"id\": 1, \"email\":\"dude@test.com\", \"password\":\"java\"}"))
-            .andDo(print())
+            .content(objectMapper.writeValueAsString(dude)))
             .andExpect(status().isOk());
-//
-//        mockMvc.perform(post("/api/users")
-//            .contentType(MediaType.APPLICATION_JSON)
-//            .content(objectMapper.writeValueAsString(dude)))
-//            .andExpect(status().isOk());
 
         verify(userService, times(1)).insert(argThat(user ->
                 user.email().equals("dude@test.com") && user.password().equals("java")));
+        verifyNoMoreInteractions(userService);
+    }
+
+    @Test
+    public void givenCreateUser_whenUsingExistingEmail_thenReturnConflict409() throws Exception {
+        User dude = new User(1, "dude@test.com", "java");
+
+        doThrow(new ResponseStatusException(HttpStatus.CONFLICT))
+            .when(userService).insert(any(User.class));
+
+        mockMvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dude)))
+            .andExpect(status().isConflict());
+
+        verify(userService, times(1)).insert(any(User.class));
+        verifyNoMoreInteractions(userService);
+    }
+
+    @Test
+    public void givenInsertNewUser_whenDatabaseIsDown_thenReturn500() throws Exception {
+        User dude = new User(1, "dude@test.com", "java");
+        doThrow(new RuntimeException()).when(userService).insert(any(User.class));
+
+        ServletException ex = assertThrows(ServletException.class, () ->
+            mockMvc.perform(post("/api/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(dude)))
+                .andReturn()
+        );
+
+        assertInstanceOf(RuntimeException.class, ex.getCause());
+        verify(userService, times(1)).insert(any(User.class));
         verifyNoMoreInteractions(userService);
     }
 
