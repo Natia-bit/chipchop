@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.server.ResponseStatusException;
 
 
@@ -22,8 +21,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -163,7 +161,7 @@ public class UserRestControllerTest {
     }
 
     @Test
-    public void givenInsertNewUser_whenDatabaseIsDown_thenReturn500() throws Exception {
+    public void givenCreateUser_whenDatabaseIsDown_thenReturn500() throws Exception {
         User dude = new User(1, "dude@test.com", "java");
         doThrow(new RuntimeException()).when(userService).insert(any(User.class));
 
@@ -179,4 +177,88 @@ public class UserRestControllerTest {
         verifyNoMoreInteractions(userService);
     }
 
+
+    @Test
+    public void givenUpdateUser_whenUpdatingUser_thenSucceedWith200() throws Exception {
+        User dude = new User(1, "newdude@test.com", "java");
+
+        when(userService.update(eq(1L), any(User.class))).thenReturn(true);
+
+        mockMvc.perform(put("/api/users/{id}", 1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dude)))
+            .andExpect(status().isOk());
+
+        verify(userService, times(1)).update(eq(1L), any(User.class));
+        verifyNoMoreInteractions(userService);
+    }
+
+    @Test
+    public void givenUpdateUser_whenUpdatingInvalidId_thenReturn() throws Exception {
+        User dude = new User(1, "dude@test.com", "java");
+        when(userService.update(eq(555L), any(User.class))).thenReturn(false);
+
+        mockMvc.perform(put("/api/users/{id}", 555)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dude)))
+            .andExpect(status().isOk());
+
+        verify(userService, times(1)).update(eq(555L), any(User.class));
+        verifyNoMoreInteractions(userService);
+    }
+
+    @Test
+    public void givenUpdateUser_whenDatabaseIsDown_thenReturn500() throws Exception {
+        doThrow(new RuntimeException()).when(userService).update(eq(1L), any(User.class));
+
+        ServletException ex = assertThrows(ServletException.class, () ->
+            mockMvc.perform(put("/api/users/{id}", 1)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(new User(1, "freshdude@test.com", "java"))))
+                .andReturn()
+        );
+
+        assertInstanceOf(RuntimeException.class, ex.getCause());
+        verify(userService, times(1)).update(eq(1L), any(User.class));
+        verifyNoMoreInteractions(userService);
+    }
+
+
+
+    @Test
+    public void givenDeleteUser_whenDeletingUser_thenSucceedWith200() throws Exception {
+        when(userService.findById(1)).thenReturn(Optional.of(new User(1, "bla@testing.com", "supersecret")));
+
+        mockMvc.perform(delete("/api/users/{id}", 1))
+            .andExpect(status().isOk());
+
+        verify(userService, times(1)).delete(1);
+        verifyNoMoreInteractions(userService);
+    }
+
+    @Test
+    public void givenDeleteUser_whenDeletingInvalidUser_thenReturnNotFound() throws Exception {
+        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+            .when(userService).delete(any(Long.class));
+
+        mockMvc.perform(delete("/api/users/{id}", 1))
+            .andExpect(status().isNotFound());
+
+        verify(userService, times(1)).delete((any(Long.class)));
+        verifyNoMoreInteractions(userService);
+    }
+
+    @Test
+    public void givenDeleteUser_whenDatabaseIsDown_thenReturn500() throws Exception {
+        doThrow(new RuntimeException()).when(userService).delete(2);
+
+        ServletException ex = assertThrows(ServletException.class, () ->
+            mockMvc.perform(delete("/api/users/{id}", 2))
+                .andReturn()
+        );
+
+        assertInstanceOf(RuntimeException.class, ex.getCause());
+        verify(userService, times(1)).delete(2);
+        verifyNoMoreInteractions(userService);
+    }
 }
