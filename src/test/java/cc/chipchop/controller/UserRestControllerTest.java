@@ -158,7 +158,7 @@ public class UserRestControllerTest {
         mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dude)))
-            .andExpect(status().isOk());
+            .andExpect(status().isCreated());
 
         verify(userService, times(1)).insert(argThat(user ->
             user.email().equals("dude@test.com") && user.password().equals("java")));
