@@ -1,6 +1,7 @@
 package cc.chipchop.controller;
 
 import cc.chipchop.entity.User;
+import cc.chipchop.exception.ControllerExceptionHandler;
 import cc.chipchop.rest.ChipchopRestController;
 import cc.chipchop.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,26 +9,25 @@ import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.web.server.ResponseStatusException;
 
-
 import java.net.ConnectException;
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Import(ControllerExceptionHandler.class)
 @WebMvcTest(ChipchopRestController.class)
 public class UserRestControllerTest {
 
@@ -88,6 +88,16 @@ public class UserRestControllerTest {
         verify(userService, times(1)).findAll();
     }
 
+    @Test
+    public void givenGetAllUsers_whenDatabaseIsDown_thenReturn503() throws Exception {
+        when(userService.findAll()).thenThrow(new RuntimeException(new ConnectException()));
+
+        mockMvc.perform(get("/api/users"))
+            .andExpect(status().isServiceUnavailable());
+
+        verify(userService, times(1)).findAll();
+    }
+
 
     @Test
     public void givenFindUserById_whenFindExistingUser_thenSucceedWith200() throws Exception {
@@ -102,7 +112,6 @@ public class UserRestControllerTest {
                 jsonPath("$.email").value("bla@testing.com"),
                 jsonPath("$.password").value("supersecret")
             )
-            .andDo(print())
             .andReturn();
 
         verify(userService, times(1)).findById(1);
@@ -114,7 +123,7 @@ public class UserRestControllerTest {
         when(userService.findById(2)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         mockMvc.perform(get("/api/users/{id}", 2))
-                .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound());
 
         verify(userService, times(1)).findById(2);
         verifyNoMoreInteractions(userService);
@@ -131,18 +140,28 @@ public class UserRestControllerTest {
         verify(userService, times(1)).findById(3);
     }
 
+    @Test
+    public void givenFindUserById_whenDatabaseIsDown_thenReturn503() throws Exception {
+        when(userService.findById(3)).thenThrow(new RuntimeException(new ConnectException()));
+
+        mockMvc.perform(get("/api/users/{id}", 3))
+            .andExpect(status().isServiceUnavailable());
+
+        verify(userService, times(1)).findById(3);
+    }
+
 
     @Test
-    public void givenCreateUser_whenCreatingUser_thenSucceedWith200() throws Exception {
+    public void givenCreateUser_whenCreatingUser_thenReturn200() throws Exception {
         User dude = new User(1, "dude@test.com", "java");
 
         mockMvc.perform(post("/api/users")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(dude)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dude)))
             .andExpect(status().isOk());
 
         verify(userService, times(1)).insert(argThat(user ->
-                user.email().equals("dude@test.com") && user.password().equals("java")));
+            user.email().equals("dude@test.com") && user.password().equals("java")));
         verifyNoMoreInteractions(userService);
     }
 
@@ -163,26 +182,17 @@ public class UserRestControllerTest {
     }
 
     @Test
-    public void givenCreateUser_whenDatabaseIsDown_thenReturn500() throws Exception {
+    public void givenCreateUser_whenDatabaseIsDown_thenReturn503() throws Exception {
         User dude = new User(1, "dude@test.com", "java");
-        doThrow(new ConnectException()).when(userService).insert(any(User.class));
-
+        doThrow(new RuntimeException(new ConnectException())).when(userService).insert(any(User.class));
 
         mockMvc.perform(post("/api/users")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(dude))
-        ).andExpect(status().is5xxServerError());
+        ).andExpect(status().isServiceUnavailable());
 
-//        ServletException ex = assertThrows(ServletException.class, () ->
-//            mockMvc.perform(post("/api/users")
-//                    .contentType(MediaType.APPLICATION_JSON)
-//                    .content(objectMapper.writeValueAsString(dude)))
-//                .andReturn()
-//        );
-//
-//        assertInstanceOf(RuntimeException.class, ex.getCause());
-//        verify(userService, times(1)).insert(any(User.class));
-//        verifyNoMoreInteractions(userService);
+        verify(userService, times(1)).insert(any(User.class));
+        verifyNoMoreInteractions(userService);
     }
 
 
@@ -215,21 +225,17 @@ public class UserRestControllerTest {
     }
 
     @Test
-    public void givenUpdateUser_whenDatabaseIsDown_thenReturn500() throws Exception {
-        doThrow(new RuntimeException()).when(userService).update(eq(1L), any(User.class));
+    public void givenUpdateUser_whenDatabaseIsDown_thenReturn503() throws Exception {
+        doThrow(new RuntimeException(new ConnectException())).when(userService).update(eq(1L), any(User.class));
 
-        ServletException ex = assertThrows(ServletException.class, () ->
-            mockMvc.perform(put("/api/users/{id}", 1)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(new User(1, "freshdude@test.com", "java"))))
-                .andReturn()
-        );
+        mockMvc.perform(put("/api/users/{id}", 1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new User(1, "freshdude@test.com", "java"))))
+            .andExpect(status().isServiceUnavailable());
 
-        assertInstanceOf(RuntimeException.class, ex.getCause());
         verify(userService, times(1)).update(eq(1L), any(User.class));
         verifyNoMoreInteractions(userService);
     }
-
 
 
     @Test
@@ -244,7 +250,7 @@ public class UserRestControllerTest {
     }
 
     @Test
-    public void givenDeleteUser_whenDeletingInvalidUser_thenReturnNotFound() throws Exception {
+    public void givenDeleteUser_whenDeletingInvalidUser_thenReturnNotFound404() throws Exception {
         doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
             .when(userService).delete(any(Long.class));
 
@@ -256,15 +262,12 @@ public class UserRestControllerTest {
     }
 
     @Test
-    public void givenDeleteUser_whenDatabaseIsDown_thenReturn500() throws Exception {
-        doThrow(new RuntimeException()).when(userService).delete(2);
+    public void givenDeleteUser_whenDatabaseIsDown_thenReturn503() throws Exception {
+        doThrow(new RuntimeException(new ConnectException())).when(userService).delete(2);
 
-        ServletException ex = assertThrows(ServletException.class, () ->
             mockMvc.perform(delete("/api/users/{id}", 2))
-                .andReturn()
-        );
+                .andExpect(status().isServiceUnavailable());
 
-        assertInstanceOf(RuntimeException.class, ex.getCause());
         verify(userService, times(1)).delete(2);
         verifyNoMoreInteractions(userService);
     }
