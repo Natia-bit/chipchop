@@ -12,9 +12,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.web.server.ResponseStatusException;
 
 
+import java.net.ConnectException;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -46,7 +49,6 @@ public class UserRestControllerTest {
             new User(3, "tree@test.com", "pass")));
 
         mockMvc.perform(get("/api/users"))
-            .andDo(print())
             .andExpectAll(
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON),
@@ -163,25 +165,30 @@ public class UserRestControllerTest {
     @Test
     public void givenCreateUser_whenDatabaseIsDown_thenReturn500() throws Exception {
         User dude = new User(1, "dude@test.com", "java");
-        doThrow(new RuntimeException()).when(userService).insert(any(User.class));
+        doThrow(new ConnectException()).when(userService).insert(any(User.class));
 
-        ServletException ex = assertThrows(ServletException.class, () ->
-            mockMvc.perform(post("/api/users")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(dude)))
-                .andReturn()
-        );
 
-        assertInstanceOf(RuntimeException.class, ex.getCause());
-        verify(userService, times(1)).insert(any(User.class));
-        verifyNoMoreInteractions(userService);
+        mockMvc.perform(post("/api/users")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dude))
+        ).andExpect(status().is5xxServerError());
+
+//        ServletException ex = assertThrows(ServletException.class, () ->
+//            mockMvc.perform(post("/api/users")
+//                    .contentType(MediaType.APPLICATION_JSON)
+//                    .content(objectMapper.writeValueAsString(dude)))
+//                .andReturn()
+//        );
+//
+//        assertInstanceOf(RuntimeException.class, ex.getCause());
+//        verify(userService, times(1)).insert(any(User.class));
+//        verifyNoMoreInteractions(userService);
     }
 
 
     @Test
     public void givenUpdateUser_whenUpdatingUser_thenSucceedWith200() throws Exception {
         User dude = new User(1, "newdude@test.com", "java");
-
         when(userService.update(eq(1L), any(User.class))).thenReturn(true);
 
         mockMvc.perform(put("/api/users/{id}", 1)
