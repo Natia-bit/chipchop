@@ -2,6 +2,7 @@ package cc.chipchop.rest;
 
 import cc.chipchop.entity.User;
 import cc.chipchop.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,8 +27,8 @@ public class ChipchopRestController {
         return userService.findById(id);
     }
 
-
     @PostMapping("/users")
+    @ResponseStatus(code = HttpStatus.CREATED)
     public void createUser(@RequestBody User user) {
         userService.insert(user);
     }
