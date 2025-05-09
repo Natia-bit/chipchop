@@ -28,7 +28,7 @@ public class ChipchopRestController {
     }
 
     @PostMapping("/users")
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(code = HttpStatus.CREATED)
     public void createUser(@RequestBody User user) {
         userService.insert(user);
     }

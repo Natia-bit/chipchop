@@ -1,17 +1,15 @@
 package cc.chipchop.controller;
 
 import cc.chipchop.entity.User;
-import cc.chipchop.exception.ControllerExceptionHandler;
 import cc.chipchop.rest.ChipchopRestController;
 import cc.chipchop.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,13 +19,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Import(ControllerExceptionHandler.class)
+@ContextConfiguration
 @WebMvcTest(ChipchopRestController.class)
 public class UserRestControllerTest {
 
@@ -77,23 +73,13 @@ public class UserRestControllerTest {
         verifyNoMoreInteractions(userService);
     }
 
+
     @Test
     public void givenGetAllUsers_whenDatabaseIsDown_thenReturn500() throws Exception {
-        when(userService.findAll()).thenThrow(new RuntimeException());
-
-        assertThrows(ServletException.class, () ->
-            mockMvc.perform(get("/api/users")).andReturn()
-        );
-
-        verify(userService, times(1)).findAll();
-    }
-
-    @Test
-    public void givenGetAllUsers_whenDatabaseIsDown_thenReturn503() throws Exception {
         when(userService.findAll()).thenThrow(new RuntimeException(new ConnectException()));
 
         mockMvc.perform(get("/api/users"))
-            .andExpect(status().isServiceUnavailable());
+            .andExpect(status().isInternalServerError());
 
         verify(userService, times(1)).findAll();
     }
@@ -131,23 +117,13 @@ public class UserRestControllerTest {
 
     @Test
     public void givenFindUserById_whenDatabaseIsDown_thenReturn500() throws Exception {
-        when(userService.findById(3)).thenThrow(new RuntimeException());
-
-        assertThrows(ServletException.class, () ->
-            mockMvc.perform(get("/api/users/{id}", 3)).andReturn()
-        );
-
-        verify(userService, times(1)).findById(3);
-    }
-
-    @Test
-    public void givenFindUserById_whenDatabaseIsDown_thenReturn503() throws Exception {
         when(userService.findById(3)).thenThrow(new RuntimeException(new ConnectException()));
 
         mockMvc.perform(get("/api/users/{id}", 3))
-            .andExpect(status().isServiceUnavailable());
+            .andExpect(status().isInternalServerError());
 
         verify(userService, times(1)).findById(3);
+        verifyNoMoreInteractions(userService);
     }
 
 
@@ -168,7 +144,6 @@ public class UserRestControllerTest {
     @Test
     public void givenCreateUser_whenUsingExistingEmail_thenReturnConflict409() throws Exception {
         User dude = new User(1, "dude@test.com", "java");
-
         doThrow(new ResponseStatusException(HttpStatus.CONFLICT))
             .when(userService).insert(any(User.class));
 
@@ -182,14 +157,14 @@ public class UserRestControllerTest {
     }
 
     @Test
-    public void givenCreateUser_whenDatabaseIsDown_thenReturn503() throws Exception {
+    public void givenCreateUser_whenDatabaseIsDown_thenReturn500() throws Exception {
         User dude = new User(1, "dude@test.com", "java");
         doThrow(new RuntimeException(new ConnectException())).when(userService).insert(any(User.class));
 
         mockMvc.perform(post("/api/users")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(dude))
-        ).andExpect(status().isServiceUnavailable());
+        ).andExpect(status().isInternalServerError());
 
         verify(userService, times(1)).insert(any(User.class));
         verifyNoMoreInteractions(userService);
@@ -225,13 +200,13 @@ public class UserRestControllerTest {
     }
 
     @Test
-    public void givenUpdateUser_whenDatabaseIsDown_thenReturn503() throws Exception {
+    public void givenUpdateUser_whenDatabaseIsDown_thenReturn500() throws Exception {
         doThrow(new RuntimeException(new ConnectException())).when(userService).update(eq(1L), any(User.class));
 
         mockMvc.perform(put("/api/users/{id}", 1)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new User(1, "freshdude@test.com", "java"))))
-            .andExpect(status().isServiceUnavailable());
+            .andExpect(status().isInternalServerError());
 
         verify(userService, times(1)).update(eq(1L), any(User.class));
         verifyNoMoreInteractions(userService);
@@ -262,11 +237,11 @@ public class UserRestControllerTest {
     }
 
     @Test
-    public void givenDeleteUser_whenDatabaseIsDown_thenReturn503() throws Exception {
+    public void givenDeleteUser_whenDatabaseIsDown_thenReturn500() throws Exception {
         doThrow(new RuntimeException(new ConnectException())).when(userService).delete(2);
 
             mockMvc.perform(delete("/api/users/{id}", 2))
-                .andExpect(status().isServiceUnavailable());
+                .andExpect(status().isInternalServerError());
 
         verify(userService, times(1)).delete(2);
         verifyNoMoreInteractions(userService);

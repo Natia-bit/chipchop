@@ -14,7 +14,7 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler({DataAccessException.class, SQLException.class, ConnectException.class})
     public ResponseEntity<String> handleDatabaseDown(Exception e){
-        return new ResponseEntity<>( HttpStatus.SERVICE_UNAVAILABLE );
+        return new ResponseEntity<>( HttpStatus.INTERNAL_SERVER_ERROR );
     }
 
 
