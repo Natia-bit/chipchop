@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ContextConfiguration
 @WebMvcTest(ChipchopRestController.class)
 @Import({SecurityConfig.class, UserDetailServiceImpl.class})
 public class SecurityConfigTest {
@@ -57,12 +59,15 @@ public class SecurityConfigTest {
     }
 
     @Test
-    @WithMockUser(username = "test@example.com")
     void givenValidCredentials_whenAccessProtectedEndpoint_thenOk() throws Exception {
-        mockMvc.perform(get("/api/users"))
+        when(userService.findByEmail("test@example.com")).thenReturn(mockUser);
+
+        mockMvc.perform(get("/api/users")
+                .with(httpBasic("test@example.com", "password")))
             .andExpect(status().isOk());
 
         verify(userService, times(1)).findAll();
+        verify(userService, times(1)).findByEmail("test@example.com");
         verifyNoMoreInteractions(userService);
     }
 
