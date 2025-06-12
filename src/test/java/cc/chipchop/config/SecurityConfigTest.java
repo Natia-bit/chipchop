@@ -7,6 +7,7 @@ import cc.chipchop.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -25,8 +26,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ContextConfiguration(classes = {SecurityConfig.class, UserDetailServiceImpl.class, ChipchopRestController.class})
-@WebMvcTest
+@WebMvcTest(ChipchopRestController.class)
+@Import({SecurityConfig.class, UserDetailServiceImpl.class})
 public class SecurityConfigTest {
     @Autowired
     private MockMvc mockMvc;
