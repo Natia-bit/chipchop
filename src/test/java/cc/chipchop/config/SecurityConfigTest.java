@@ -1,5 +1,6 @@
 package cc.chipchop.config;
 
+import cc.chipchop.ChipchopApplication;
 import cc.chipchop.entity.User;
 import cc.chipchop.rest.ChipchopRestController;
 import cc.chipchop.service.UserDetailServiceImpl;
@@ -26,8 +27,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ContextConfiguration(classes = {SecurityConfig.class, UserDetailServiceImpl.class, ChipchopRestController.class})
 @WebMvcTest(ChipchopRestController.class)
-@Import({SecurityConfig.class, UserDetailServiceImpl.class})
 public class SecurityConfigTest {
     @Autowired
     private MockMvc mockMvc;
