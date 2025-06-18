@@ -6,6 +6,7 @@ import cc.chipchop.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,7 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ContextConfiguration
-@WebMvcTest(ChipchopRestController.class)
+@WebMvcTest(value = ChipchopRestController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
 public class UserRestControllerTest {
 
     @Autowired

@@ -3,7 +3,6 @@ package cc.chipchop.services;
 import cc.chipchop.dao.RoleDao;
 import cc.chipchop.entity.Role;
 import cc.chipchop.service.RoleService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
