@@ -63,7 +63,6 @@ public class UserDaoTest {
         );
         jdbcTemplate.update(
           "INSERT INTO users(email, password) VALUES(?,?)",
-
           "three@example.com", "supersecretpass"
         );
     }

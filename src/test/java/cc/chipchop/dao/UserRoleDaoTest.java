@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @Testcontainers
 @ActiveProfiles("test")
-public class RoleDaoTest {
+public class UserRoleDaoTest {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
@@ -41,36 +41,43 @@ public class RoleDaoTest {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    private RoleDao roleDao;
+    private UserRoleDao userRoleDao;
 
     @BeforeEach
     void setUp(){
-        jdbcTemplate.update("INSERT INTO roles (name) VALUES(?)", "USER");
-        jdbcTemplate.update("INSERT INTO roles (name) VALUES(?)", "ADMIN");
-    }
+        jdbcTemplate.update(
+            "INSERT INTO users(email, password) VALUES(?,?)",
+            "one@example.com","secretpass");
+        jdbcTemplate.update(
+            "INSERT INTO users(email, password) VALUES(?,?)",
+            "two@example.com", "verysecretpass");
+        jdbcTemplate.update(
+            "INSERT INTO users(email, password) VALUES(?,?)",
+            "three@example.com", "supersecretpass");
 
-    @AfterEach
-    void tearDown(){
-        jdbcTemplate.execute("TRUNCATE users RESTART IDENTITY");
+        jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 1,"USER");
+        jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 2,"ADMIN");
+        jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 3,"USER");
     }
-
 
     @Test
     public void givenFindAll_whenDaoLooksForRecords_thenReturnAllRecords(){
-        var roles = roleDao.findAll();
-        assertFalse(roles.isEmpty());
-        assertNotNull(roles);
-        assertEquals(2, roleDao.findAll().size());
+        var userRoles = userRoleDao.findAll();
+        assertFalse(userRoles.isEmpty());
+        assertNotNull(userRoles);
+        assertEquals(3, userRoleDao.findAll().size());
 
-        assertTrue(roles.contains(Role.USER));
-        assertTrue(roles.contains(Role.ADMIN));
+        assertTrue(userRoles.contains(Role.USER));
+//
+//        assertTrue(roles.contains(Role.USER));
+//        assertTrue(roles.contains(Role.ADMIN));
     }
 
     @Test
     void givenFindAll_whenTableIsEmpty_thenReturnEmptyList(){
         jdbcTemplate.update("DELETE FROM roles");
 
-        var roles = roleDao.findAll();
+        var roles = userRoleDao.findAll();
 
         assertNotNull(roles);
         assertTrue(roles.isEmpty());

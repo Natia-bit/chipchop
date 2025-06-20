@@ -1,7 +1,7 @@
 package cc.chipchop.dao;
 
-import cc.chipchop.entity.Role;
-import cc.chipchop.mapper.RoleRowMapper;
+import cc.chipchop.entity.UserRole;
+import cc.chipchop.mapper.UserRoleRowMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -10,17 +10,17 @@ import javax.sql.DataSource;
 import java.util.List;
 
 @Repository
-public class RoleDao {
+public class UserRoleDao {
     private final JdbcTemplate jdbcTemplate;
-    private final RoleRowMapper rowMapper = new RoleRowMapper();
+    private final UserRoleRowMapper rowMapper = new UserRoleRowMapper();
 
     @Autowired
-    public RoleDao(DataSource dataSource) {
+    public UserRoleDao(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    public List<Role> findAll(){
-        var query = "SELECT id, name FROM roles";
+    public List<UserRole> findAll(){
+        var query = "SELECT user_id, role FROM user_roles";
         return this.jdbcTemplate.query(query, this.rowMapper);
     }
 }

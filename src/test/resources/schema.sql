@@ -4,7 +4,9 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS roles (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL
+CREATE TABLE IF NOT EXISTS user_roles (
+    user_id BIGINT NOT NULL,
+    role TEXT NOT NULL,
+    PRIMARY KEY (user_id, role),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

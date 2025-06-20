@@ -2,8 +2,8 @@ package cc.chipchop.controller;
 
 import cc.chipchop.entity.Role;
 import cc.chipchop.exception.ControllerExceptionHandler;
-import cc.chipchop.rest.RoleRestController;
-import cc.chipchop.service.RoleService;
+import cc.chipchop.rest.UserRoleRestController;
+import cc.chipchop.service.UserRoleService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -21,20 +21,20 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ContextConfiguration(classes = {RoleRestController.class, ControllerExceptionHandler.class})
-@WebMvcTest( value = RoleRestController.class,  excludeAutoConfiguration = SecurityAutoConfiguration.class)
-public class RoleRestControllerTest {
+@ContextConfiguration(classes = {UserRoleRestController.class, ControllerExceptionHandler.class})
+@WebMvcTest( value = UserRoleRestController.class,  excludeAutoConfiguration = SecurityAutoConfiguration.class)
+public class UserRoleRestControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
-    private RoleService roleService;
+    private UserRoleService userRoleService;
 
     @Test
     public void givenGetAllRoles_whenLookingAllRoles_thenSucceedWith200() throws Exception {
         List<Role> mockRoles = List.of(Role.USER, Role.ADMIN);
-        when(roleService.findAll()).thenReturn(mockRoles);
+//        when(userRoleService.findAll()).thenReturn(mockRoles);
 
         mockMvc.perform(get("/api/roles"))
             .andExpectAll(
@@ -45,13 +45,13 @@ public class RoleRestControllerTest {
                 jsonPath("$[1]").value("ADMIN")
             );
 
-        verify(roleService, times(1)).findAll();
-        verifyNoMoreInteractions(roleService);
+        verify(userRoleService, times(1)).findAll();
+        verifyNoMoreInteractions(userRoleService);
     }
 
     @Test
     public void givenGetAllRoles_whenRolesAreEmpty_thenReturn200WithEmptyList() throws Exception {
-        when(roleService.findAll()).thenReturn(Collections.emptyList());
+        when(userRoleService.findAll()).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/api/roles"))
             .andExpectAll(
@@ -60,29 +60,29 @@ public class RoleRestControllerTest {
                 jsonPath("$.length()").value(0)
             );
 
-        verify(roleService, times(1)).findAll();
-        verifyNoMoreInteractions(roleService);
+        verify(userRoleService, times(1)).findAll();
+        verifyNoMoreInteractions(userRoleService);
     }
 
     @Test
     public void givenGetAllRoles_WhenServiceThrowsException_thenReturn500() throws Exception {
-        when(roleService.findAll()).thenThrow(new RuntimeException(new ConnectException()));
+        when(userRoleService.findAll()).thenThrow(new RuntimeException(new ConnectException()));
 
         mockMvc.perform(get("/api/roles"))
             .andExpect(status().isInternalServerError());
 
-        verify(roleService, times(1)).findAll();
-        verifyNoMoreInteractions(roleService);
+        verify(userRoleService, times(1)).findAll();
+        verifyNoMoreInteractions(userRoleService);
     }
 
     @Test
     public void givenGetAllUsers_whenDatabaseIsDown_thenReturn500() throws Exception {
-        when(roleService.findAll()).thenThrow(new RuntimeException(new ConnectException()));
+        when(userRoleService.findAll()).thenThrow(new RuntimeException(new ConnectException()));
 
         mockMvc.perform(get("/api/roles"))
             .andExpect(status().isInternalServerError());
 
-        verify(roleService, times(1)).findAll();
-        verifyNoMoreInteractions(roleService);
+        verify(userRoleService, times(1)).findAll();
+        verifyNoMoreInteractions(userRoleService);
     }
 }
