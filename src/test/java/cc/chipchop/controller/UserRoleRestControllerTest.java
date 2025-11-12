@@ -54,6 +54,24 @@ public class UserRoleRestControllerTest {
         verifyNoMoreInteractions(userRoleService);
     }
 
+
+    @Test
+    public void givenAllRoles_whenLookingAllRoles_thenReturnJsonValidStructureAndDataTypes() throws Exception {
+        List<UserRole> mockUser = List.of(new UserRole(1, "ADMIN"));
+        when(userRoleService.findAll()).thenReturn(mockUser);
+
+        mockMvc.perform(get("/api/roles"))
+            .andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                jsonPath("$[0].userId").isNumber(),
+                jsonPath("$[0].role").isString()
+            );
+
+        verify(userRoleService, times(1)).findAll();
+        verifyNoMoreInteractions(userRoleService);
+    }
+
     @Test
     public void givenGetAllRoles_whenRolesAreEmpty_thenReturn200WithEmptyList() throws Exception {
         when(userRoleService.findAll()).thenReturn(Collections.emptyList());
