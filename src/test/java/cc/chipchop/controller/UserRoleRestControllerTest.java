@@ -1,6 +1,7 @@
 package cc.chipchop.controller;
 
 import cc.chipchop.entity.Role;
+import cc.chipchop.entity.UserRole;
 import cc.chipchop.exception.ControllerExceptionHandler;
 import cc.chipchop.rest.UserRoleRestController;
 import cc.chipchop.service.UserRoleService;
@@ -21,6 +22,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+
 @ContextConfiguration(classes = {UserRoleRestController.class, ControllerExceptionHandler.class})
 @WebMvcTest( value = UserRoleRestController.class,  excludeAutoConfiguration = SecurityAutoConfiguration.class)
 public class UserRoleRestControllerTest {
@@ -33,16 +35,19 @@ public class UserRoleRestControllerTest {
 
     @Test
     public void givenGetAllRoles_whenLookingAllRoles_thenSucceedWith200() throws Exception {
-        List<Role> mockRoles = List.of(Role.USER, Role.ADMIN);
-//        when(userRoleService.findAll()).thenReturn(mockRoles);
+        List<UserRole> mockRoles = List.of(
+            new UserRole(1, "USER"),
+            new UserRole(2, "ADMIN")
+        );
+        when(userRoleService.findAll()).thenReturn(mockRoles);
 
         mockMvc.perform(get("/api/roles"))
             .andExpectAll(
                 status().isOk(),
                 content().contentType(MediaType.APPLICATION_JSON),
                 jsonPath("$.length()").value(2),
-                jsonPath("$[0]").value("USER"),
-                jsonPath("$[1]").value("ADMIN")
+                jsonPath("$[0].role").value("USER"),
+                jsonPath("$[1].role").value("ADMIN")
             );
 
         verify(userRoleService, times(1)).findAll();
