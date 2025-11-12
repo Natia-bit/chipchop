@@ -127,6 +127,4 @@ public class UserRoleRestControllerTest {
         verify(userRoleService, times(0)).findAll();
         verifyNoMoreInteractions(userRoleService);
     }
-
-
 }
