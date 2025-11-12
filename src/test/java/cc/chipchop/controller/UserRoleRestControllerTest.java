@@ -20,6 +20,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
@@ -108,4 +109,24 @@ public class UserRoleRestControllerTest {
         verify(userRoleService, times(1)).findAll();
         verifyNoMoreInteractions(userRoleService);
     }
+
+    @Test
+    public void givenInvalidEndpoint_whenAccessed_thenReturn404() throws Exception {
+        mockMvc.perform(get("/api/unknown"))
+            .andExpect(status().isNotFound());
+
+        verify(userRoleService, times(0)).findAll();
+        verifyNoMoreInteractions(userRoleService);
+    }
+
+    @Test
+    public void givenPostMethod_whenNotSupported_thenReturn405() throws Exception {
+        mockMvc.perform(post("/api/roles"))
+            .andExpect(status().isMethodNotAllowed());
+
+        verify(userRoleService, times(0)).findAll();
+        verifyNoMoreInteractions(userRoleService);
+    }
+
+
 }
