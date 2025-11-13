@@ -37,8 +37,8 @@ public class UserRoleRestControllerTest {
     @Test
     public void givenGetAllRoles_whenLookingAllRoles_thenSucceedWith200() throws Exception {
         List<UserRole> mockRoles = List.of(
-            new UserRole(1, "USER"),
-            new UserRole(2, "ADMIN")
+            new UserRole(1, Role.USER),
+            new UserRole(2, Role.ADMIN)
         );
         when(userRoleService.findAll()).thenReturn(mockRoles);
 
@@ -58,7 +58,7 @@ public class UserRoleRestControllerTest {
 
     @Test
     public void givenAllRoles_whenLookingAllRoles_thenReturnJsonValidStructureAndDataTypes() throws Exception {
-        List<UserRole> mockUser = List.of(new UserRole(1, "ADMIN"));
+        List<UserRole> mockUser = List.of(new UserRole(1, Role.ADMIN));
         when(userRoleService.findAll()).thenReturn(mockUser);
 
         mockMvc.perform(get("/api/roles"))

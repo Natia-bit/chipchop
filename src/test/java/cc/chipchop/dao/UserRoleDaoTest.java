@@ -1,6 +1,8 @@
 package cc.chipchop.dao;
 
 import cc.chipchop.entity.Role;
+import cc.chipchop.entity.User;
+import cc.chipchop.entity.UserRole;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,13 +66,15 @@ public class UserRoleDaoTest {
     public void givenFindAll_whenDaoLooksForRecords_thenReturnAllRecords(){
         var userRoles = userRoleDao.findAll();
         assertFalse(userRoles.isEmpty());
-        assertNotNull(userRoles);
-        assertEquals(3, userRoleDao.findAll().size());
+        assertEquals(3, userRoles.size());
 
-        assertTrue(userRoles.contains(Role.USER));
-//
-//        assertTrue(roles.contains(Role.USER));
-//        assertTrue(roles.contains(Role.ADMIN));
+        assertEquals(Role.ADMIN, userRoles.get(1).role());
+        assertEquals(Role.USER, userRoles.get(2).role());
+
+        var result = userRoles.stream().filter(userRole -> userRole.userId() == 1 && userRole.role() == Role.USER).findFirst();
+        assertTrue(result.isPresent());
+        assertEquals(Role.USER, result.get().role());
+        assertEquals(1, result.get().userId());
     }
 
     @Test
