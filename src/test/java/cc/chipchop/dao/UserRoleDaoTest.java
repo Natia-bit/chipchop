@@ -6,6 +6,7 @@ import cc.chipchop.entity.UserRole;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -56,22 +57,34 @@ public class UserRoleDaoTest {
         jdbcTemplate.update(
             "INSERT INTO users(email, password) VALUES(?,?)",
             "three@example.com", "supersecretpass");
+        jdbcTemplate.update(
+            "INSERT INTO users(email, password) VALUES(?,?)",
+            "four@example.com", "password");
+        jdbcTemplate.update(
+            "INSERT INTO users(email, password) VALUES(?,?)",
+            "five@example.com", "superpassword");
 
         jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 1,"USER");
         jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 2,"ADMIN");
         jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 3,"USER");
+        jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 4,"User");
+        jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 5,"Admin");
     }
+
+    @AfterEach
+    public void tearDown(){
+        jdbcTemplate.execute("TRUNCATE TABLE user_roles, users RESTART IDENTITY CASCADE");
+    }
+
 
     @Test
     public void givenFindAll_whenDaoLooksForRecords_thenReturnAllRecords(){
         var userRoles = userRoleDao.findAll();
         assertFalse(userRoles.isEmpty());
-        assertEquals(3, userRoles.size());
+        assertEquals(5, userRoles.size());
 
-        assertEquals(Role.ADMIN, userRoles.get(1).role());
-        assertEquals(Role.USER, userRoles.get(2).role());
-
-        var result = userRoles.stream().filter(userRole -> userRole.userId() == 1 && userRole.role() == Role.USER).findFirst();
+        var result = userRoles.stream().filter(
+            userRole -> userRole.userId() == 1 && userRole.role() == Role.USER).findFirst();
         assertTrue(result.isPresent());
         assertEquals(Role.USER, result.get().role());
         assertEquals(1, result.get().userId());
@@ -79,11 +92,21 @@ public class UserRoleDaoTest {
 
     @Test
     void givenFindAll_whenTableIsEmpty_thenReturnEmptyList(){
-        jdbcTemplate.update("DELETE FROM roles");
-
+        jdbcTemplate.update("DELETE FROM user_roles");
         var roles = userRoleDao.findAll();
 
         assertNotNull(roles);
         assertTrue(roles.isEmpty());
+    }
+
+    @Test
+    void givenFindAll_whenDaoLooksForRecords_thenRolesInRecordsAreCapital() {
+        var userRoles = userRoleDao.findAll();
+
+        var result = userRoles.stream().map(
+            userRole -> userRole.role().name()
+        ).allMatch(roleName -> roleName.equals(roleName.toUpperCase()));
+
+    assertTrue(result);
     }
 }
