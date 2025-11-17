@@ -1,12 +1,10 @@
 package cc.chipchop.dao;
 
 import cc.chipchop.entity.Role;
-import cc.chipchop.entity.User;
 import cc.chipchop.entity.UserRole;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,6 +15,10 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.HashSet;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -65,29 +67,37 @@ public class UserRoleDaoTest {
             "five@example.com", "superpassword");
 
         jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 1,"USER");
-        jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 2,"ADMIN");
-        jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 3,"USER");
-        jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 4,"User");
         jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 5,"Admin");
+        jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 2,"ADMIN");
+        jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 4,"USER");
+        jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 3,"User");
+
     }
 
     @AfterEach
     public void tearDown(){
-        jdbcTemplate.execute("TRUNCATE TABLE user_roles, users RESTART IDENTITY CASCADE");
+        jdbcTemplate.execute("TRUNCATE TABLE user_roles, users  RESTART IDENTITY CASCADE");
     }
 
 
     @Test
     public void givenFindAll_whenDaoLooksForRecords_thenReturnAllRecords(){
-        var userRoles = userRoleDao.findAll();
-        assertFalse(userRoles.isEmpty());
-        assertEquals(5, userRoles.size());
+        var actual = userRoleDao.findAll();
+        assertFalse(actual.isEmpty());
+        assertEquals(5, actual.size());
 
-        var result = userRoles.stream().filter(
-            userRole -> userRole.userId() == 1 && userRole.role() == Role.USER).findFirst();
-        assertTrue(result.isPresent());
-        assertEquals(Role.USER, result.get().role());
-        assertEquals(1, result.get().userId());
+        var expected = List.of(
+            new UserRole(4L, Role.USER),
+            new UserRole(1L, Role.USER),
+            new UserRole(5L, Role.ADMIN),
+            new UserRole(3L, Role.USER),
+            new UserRole(2L, Role.ADMIN)
+        );
+
+        assertThat(actual)
+            .containsExactlyInAnyOrderElementsOf(expected);
+
+        assertEquals(new HashSet<>(expected), new HashSet<>(actual));
     }
 
     @Test
