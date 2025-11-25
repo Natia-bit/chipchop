@@ -3,8 +3,10 @@ package cc.chipchop.service;
 import cc.chipchop.dao.UserRoleDao;
 import cc.chipchop.entity.Role;
 import cc.chipchop.entity.UserRole;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -24,6 +26,9 @@ public class UserRoleService {
 
     @Transactional
     public void assignRole(UserRole userRole) {
-        userRoleDao.insert(new UserRole(userRole.userId(), userRole.role()));
+//        userRoleDao.insert(new UserRole(userRole.userId(), userRole.role()));
+        userRoleDao.findRoleByUserId(userRole.userId()).
+            ifPresentOrElse(ur -> {throw new ResponseStatusException(HttpStatus.CONFLICT);},
+                () -> userRoleDao.insert(new UserRole(userRole.userId(), userRole.role())));
     }
 }

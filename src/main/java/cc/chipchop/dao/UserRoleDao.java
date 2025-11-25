@@ -32,7 +32,7 @@ public class UserRoleDao {
     }
 
     public Optional<UserRole> findRoleByUserId( long userId){
-        var query = "SELECT user_id FROM user_roles WHERE user_id = ?";
+        var query = "SELECT user_id, role FROM user_roles WHERE user_id=?";
         try {
             return Optional.ofNullable(this.jdbcTemplate.queryForObject(query, this.rowMapper, userId));
         } catch (EmptyResultDataAccessException e){
