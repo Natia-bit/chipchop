@@ -119,4 +119,17 @@ public class UserRoleDaoTest {
 
     assertTrue(result);
     }
+
+    @Test
+    void givenFindRoleByUserId_whenDaoLooksForId_thenReturnUserRole(){
+        var userRole = userRoleDao.findRoleByUserId(1);
+        assertTrue(userRole.isPresent());
+        assertEquals(1, userRole.get().userId());
+    }
+
+    @Test
+    void givenFindRoleByUserId_whenDaoLooksForInvalidId_thenReturnEmpty(){
+        var userRole = userRoleDao.findRoleByUserId(404);
+        assertTrue(userRole.isEmpty());
+    }
 }
