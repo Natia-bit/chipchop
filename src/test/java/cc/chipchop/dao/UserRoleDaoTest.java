@@ -65,6 +65,9 @@ public class UserRoleDaoTest {
         jdbcTemplate.update(
             "INSERT INTO users(email, password) VALUES(?,?)",
             "five@example.com", "superpassword");
+        jdbcTemplate.update(
+            "INSERT INTO users(id, email, password) VALUES(?,?,?)",
+            10, "ten@example.com", "superpassword");
 
         jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 1,"USER");
         jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 5,"Admin");
@@ -101,6 +104,17 @@ public class UserRoleDaoTest {
     }
 
     @Test
+    void givenFindAll_whenDaoLooksForRecords_thenRolesInRecordsAreCapital() {
+        var userRoles = userRoleDao.findAll();
+
+        var result = userRoles.stream().map(
+            userRole -> userRole.role().name()
+        ).allMatch(roleName -> roleName.equals(roleName.toUpperCase()));
+
+    assertTrue(result);
+    }
+
+    @Test
     void givenFindAll_whenTableIsEmpty_thenReturnEmptyList(){
         jdbcTemplate.update("DELETE FROM user_roles");
         var roles = userRoleDao.findAll();
@@ -110,14 +124,20 @@ public class UserRoleDaoTest {
     }
 
     @Test
-    void givenFindAll_whenDaoLooksForRecords_thenRolesInRecordsAreCapital() {
-        var userRoles = userRoleDao.findAll();
+    void givenInsert_whenDaoAssignsNewRole_thenReturnNewUserRole(){
+        var newUserRole = new UserRole(10, Role.ADMIN);
+        userRoleDao.insert(newUserRole);
 
-        var result = userRoles.stream().map(
-            userRole -> userRole.role().name()
-        ).allMatch(roleName -> roleName.equals(roleName.toUpperCase()));
+        assertTrue(userRoleDao.findRoleByUserId(10).isPresent());
+        assertNotNull(userRoleDao.findRoleByUserId(10));
+        assertEquals(Role.ADMIN, userRoleDao.findRoleByUserId(10).get().role());
+    }
 
-    assertTrue(result);
+    @Test
+    void givenInsert_whenDaoAssignsNewRoleWithInvalidId_thenThrowException(){
+        var newUserRole = new UserRole(100, Role.ADMIN);
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
+            () ->userRoleDao.insert(newUserRole));
     }
 
     @Test
