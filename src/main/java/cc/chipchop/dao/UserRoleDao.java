@@ -38,6 +38,10 @@ public class UserRoleDao {
         } catch (EmptyResultDataAccessException e){
             return Optional.empty();
         }
+    }
 
+    public int delete(long userId) {
+        var query = "DELETE FROM user_roles WHERE user_id=?";
+        return this.jdbcTemplate.update(query, userId);
     }
 }

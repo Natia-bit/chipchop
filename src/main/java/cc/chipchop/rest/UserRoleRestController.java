@@ -26,5 +26,9 @@ public class UserRoleRestController {
     public void assignRole(@RequestBody UserRole userRole) {
         userRoleService.assignRole(userRole);
     }
-}
 
+    @DeleteMapping("/roles/{userId}")
+    public void revokeRole(@PathVariable long userId) {
+        userRoleService.revokeRole(userId);
+    }
+}

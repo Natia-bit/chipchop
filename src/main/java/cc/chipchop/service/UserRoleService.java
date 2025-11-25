@@ -26,9 +26,13 @@ public class UserRoleService {
 
     @Transactional
     public void assignRole(UserRole userRole) {
-//        userRoleDao.insert(new UserRole(userRole.userId(), userRole.role()));
         userRoleDao.findRoleByUserId(userRole.userId()).
             ifPresentOrElse(ur -> {throw new ResponseStatusException(HttpStatus.CONFLICT);},
                 () -> userRoleDao.insert(new UserRole(userRole.userId(), userRole.role())));
+    }
+
+    @Transactional
+    public void revokeRole(long userId) {
+        userRoleDao.findRoleByUserId(userId).ifPresent(ur -> userRoleDao.delete(userId));
     }
 }
