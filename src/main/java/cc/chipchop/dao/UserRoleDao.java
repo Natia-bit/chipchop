@@ -28,7 +28,7 @@ public class UserRoleDao {
 
     public int insert(UserRole userRole) {
         var query = "INSERT INTO user_roles(user_id, role) VALUES (?, ?) ";
-            return this.jdbcTemplate.update(query, userRole.userId(), userRole.role());
+            return this.jdbcTemplate.update(query, userRole.userId(), userRole.role().name());
     }
 
     public Optional<UserRole> findRoleByUserId( long userId){

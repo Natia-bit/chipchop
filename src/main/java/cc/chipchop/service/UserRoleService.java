@@ -1,6 +1,7 @@
 package cc.chipchop.service;
 
 import cc.chipchop.dao.UserRoleDao;
+import cc.chipchop.entity.Role;
 import cc.chipchop.entity.UserRole;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,5 +19,11 @@ public class UserRoleService {
     @Transactional(readOnly = true)
     public List<UserRole> findAll() {
         return userRoleDao.findAll();
+    }
+
+
+    @Transactional
+    public void assignRole(UserRole userRole) {
+        userRoleDao.insert(new UserRole(userRole.userId(), userRole.role()));
     }
 }

@@ -1,11 +1,9 @@
 package cc.chipchop.rest;
 
-import cc.chipchop.entity.Role;
 import cc.chipchop.entity.UserRole;
 import cc.chipchop.service.UserRoleService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,4 +20,11 @@ public class UserRoleRestController {
     public List<UserRole> getAllRoles(){
         return userRoleService.findAll();
     }
+
+    @PostMapping("/roles")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void assignRole(@RequestBody UserRole userRole) {
+        userRoleService.assignRole(userRole);
+    }
 }
+
