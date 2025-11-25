@@ -1,6 +1,5 @@
 package cc.chipchop.config;
 
-import cc.chipchop.ChipchopApplication;
 import cc.chipchop.entity.User;
 import cc.chipchop.rest.ChipchopRestController;
 import cc.chipchop.service.UserDetailServiceImpl;
@@ -8,7 +7,6 @@ import cc.chipchop.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
