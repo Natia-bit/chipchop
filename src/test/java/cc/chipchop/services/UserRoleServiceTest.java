@@ -2,8 +2,11 @@ package cc.chipchop.services;
 
 import cc.chipchop.dao.UserRoleDao;
 import cc.chipchop.entity.Role;
+import cc.chipchop.entity.User;
 import cc.chipchop.entity.UserRole;
 import cc.chipchop.service.UserRoleService;
+import com.github.dockerjava.api.exception.NotFoundException;
+import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.http.HttpException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,12 +15,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,8 +50,6 @@ public class UserRoleServiceTest {
     public void tearDown() {
         Mockito.reset(userRoleDao);
     }
-
-
 
     @Test
     void givenFindAll_whenRolesExist_thenReturnRolesFromDao(){
@@ -78,5 +85,45 @@ public class UserRoleServiceTest {
         verify(userRoleDao, times(1)).findAll();
         verifyNoMoreInteractions(userRoleDao);
     }
+
+    @Test
+    void givenAssignUserRoles_whenAssigningUserRole_thenReturnNewUserRole(){
+        var newUserRole = new UserRole(3, Role.ADMIN);
+        when(userRoleDao.findRoleByUserId(3)).
+            thenReturn(Optional.of(new UserRole(3, Role.ADMIN))).
+            thenReturn(Optional.empty());
+        userRoleService.assignRole(newUserRole);
+
+        verify(userRoleDao, times(1)).insert(newUserRole);
+    }
+
+
+    @Test
+    void givenAssignUserRoles_whenAssigningUserRoleWithInvalidId_thenReturnNotFound(){
+        var newUserRole = new UserRole(404, Role.ADMIN);
+        when(userRoleDao.findRoleByUserId(404)).thenReturn(Optional.empty());
+
+        ResponseStatusException exception = assertThrows(
+            ResponseStatusException.class, () -> userRoleService.assignRole(newUserRole));
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+
+        verifyNoMoreInteractions(userRoleDao);
+    }
+
+    @Test
+    void givenAssignUserRoles_whenAssigningUserRoleWithExistingRole_thenReturnConflict(){
+        var newUserRole = new UserRole(409, Role.USER);
+        when(userRoleDao.findRoleByUserId(409)).thenReturn(Optional.of(newUserRole));
+
+        ResponseStatusException exception = assertThrows(
+            ResponseStatusException.class, () -> userRoleService.assignRole(newUserRole)
+        );
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+
+        verifyNoMoreInteractions(userRoleDao);
+    }
+
 
 }

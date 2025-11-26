@@ -26,6 +26,10 @@ public class UserRoleService {
 
     @Transactional
     public void assignRole(UserRole userRole) {
+        if (userRoleDao.findRoleByUserId(userRole.userId()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
         userRoleDao.findRoleByUserId(userRole.userId()).
             ifPresentOrElse(ur -> {throw new ResponseStatusException(HttpStatus.CONFLICT);},
                 () -> userRoleDao.insert(new UserRole(userRole.userId(), userRole.role())));

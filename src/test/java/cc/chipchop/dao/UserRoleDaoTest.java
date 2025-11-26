@@ -67,7 +67,7 @@ public class UserRoleDaoTest {
             "five@example.com", "superpassword");
         jdbcTemplate.update(
             "INSERT INTO users(id, email, password) VALUES(?,?,?)",
-            10, "ten@example.com", "superpassword");
+            10, "ten@example.com", "tenten");
 
         jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 1,"USER");
         jdbcTemplate.update("INSERT INTO user_roles(user_id, role) VALUES(?,?)", 5,"Admin");
@@ -99,8 +99,6 @@ public class UserRoleDaoTest {
 
         assertThat(actual)
             .containsExactlyInAnyOrderElementsOf(expected);
-
-        assertEquals(new HashSet<>(expected), new HashSet<>(actual));
     }
 
     @Test
@@ -124,23 +122,6 @@ public class UserRoleDaoTest {
     }
 
     @Test
-    void givenInsert_whenDaoAssignsNewRole_thenReturnNewUserRole(){
-        var newUserRole = new UserRole(10, Role.ADMIN);
-        userRoleDao.insert(newUserRole);
-
-        assertTrue(userRoleDao.findRoleByUserId(10).isPresent());
-        assertNotNull(userRoleDao.findRoleByUserId(10));
-        assertEquals(Role.ADMIN, userRoleDao.findRoleByUserId(10).get().role());
-    }
-
-    @Test
-    void givenInsert_whenDaoAssignsNewRoleWithInvalidId_thenThrowException(){
-        var newUserRole = new UserRole(100, Role.ADMIN);
-        assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
-            () ->userRoleDao.insert(newUserRole));
-    }
-
-    @Test
     void givenFindRoleByUserId_whenDaoLooksForId_thenReturnUserRole(){
         var userRole = userRoleDao.findRoleByUserId(1);
         assertTrue(userRole.isPresent());
@@ -151,5 +132,39 @@ public class UserRoleDaoTest {
     void givenFindRoleByUserId_whenDaoLooksForInvalidId_thenReturnEmpty(){
         var userRole = userRoleDao.findRoleByUserId(404);
         assertTrue(userRole.isEmpty());
+    }
+
+    @Test
+    void givenInsert_whenDaoInsertsNewRole_thenReturnNewUserRole(){
+        var newUserRole = new UserRole(10, Role.ADMIN);
+        userRoleDao.insert(newUserRole);
+
+        assertTrue(userRoleDao.findRoleByUserId(10).isPresent());
+        assertNotNull(userRoleDao.findRoleByUserId(10));
+        assertEquals(Role.ADMIN, userRoleDao.findRoleByUserId(10).get().role());
+    }
+
+    @Test
+    void givenInsert_whenDaoInsertsNewRoleWithInvalidId_thenThrowException(){
+        var newUserRole = new UserRole(100, Role.ADMIN);
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
+            () ->userRoleDao.insert(newUserRole));
+    }
+
+    @Test
+    void givenDelete_whenDaoDeletesExistingRole_thenReturnOne(){
+        assertEquals(1, userRoleDao.delete(5));
+
+        userRoleDao.delete(5);
+        assertFalse(userRoleDao.findRoleByUserId(5).isPresent());
+        assertEquals(4, userRoleDao.findAll().size());
+    }
+
+    @Test
+    void givenDelete_whenDaoDeletesInvalidUser_thenReturnZero(){
+        assertEquals(0, userRoleDao.delete(404));
+
+        userRoleDao.delete(404);
+        assertFalse(userRoleDao.findRoleByUserId(404).isPresent());
     }
 }
