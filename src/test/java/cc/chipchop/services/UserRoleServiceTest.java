@@ -2,11 +2,8 @@ package cc.chipchop.services;
 
 import cc.chipchop.dao.UserRoleDao;
 import cc.chipchop.entity.Role;
-import cc.chipchop.entity.User;
 import cc.chipchop.entity.UserRole;
 import cc.chipchop.service.UserRoleService;
-import com.github.dockerjava.api.exception.NotFoundException;
-import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.http.HttpException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,9 +13,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
@@ -26,7 +20,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -124,6 +117,29 @@ public class UserRoleServiceTest {
 
         verifyNoMoreInteractions(userRoleDao);
     }
+
+    @Test
+    void givenRevokeRole_whenRevokingRole_thenRemoveRoleFromUser(){
+        when(userRoleDao.findRoleByUserId(1L)).thenReturn(Optional.of(new UserRole(1, Role.USER)));
+
+        userRoleService.revokeRole(1L);
+
+        verify(userRoleDao, times(1)).findRoleByUserId(any(Long.class));
+        verify(userRoleDao, times(1)).delete(any(Long.class));
+        verifyNoMoreInteractions(userRoleDao);
+    }
+
+    @Test
+    void givenRevokeRole_whenRevokingRoleWithInvalidId_thenRemoveRoleThenReturn(){
+        when(userRoleDao.findRoleByUserId(101)).thenReturn(Optional.empty());
+
+        userRoleService.revokeRole(101);
+
+        verify(userRoleDao, times(1)).findRoleByUserId(any(Long.class));
+        verifyNoMoreInteractions(userRoleDao);
+    }
+
+
 
 
 }
